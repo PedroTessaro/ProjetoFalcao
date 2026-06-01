@@ -1,0 +1,62 @@
+@startuml sequence-mission-telemetry
+title Cyber Bullet System — Sequência: Iniciar Missão + Telemetria/Navegação em tempo real
+
+skinparam sequenceArrowColor #38bdf8
+skinparam sequenceLifeLineBorderColor #2dd4bf
+skinparam sequenceParticipantBackgroundColor #131a26
+skinparam sequenceParticipantFontColor #e6edf3
+skinparam noteBackgroundColor #1a2332
+skinparam noteFontColor #e6edf3
+
+actor Operador as U
+participant "Navegador" as B
+participant "MissionController" as MC
+participant "MissionService" as MS
+participant "DroneService" as DS
+participant "CommunicationService" as COMM
+participant "TelemetrySimulator\n(@Scheduled)" as TS
+participant "NavigationService" as NAV
+participant "AuditService" as AUD
+database "H2 (relacional)" as H2
+database "MongoDB (NoSQL)" as MG
+
+== 1) Operador inicia a missão ==
+U -> B : clica "Iniciar"
+B -> MC : POST /missions/{id}/start
+MC -> MS : start(id, operador)
+MS -> H2 : Mission.status = IN_PROGRESS
+MS -> DS : sendCommand(droneId, "LAUNCH")
+DS -> COMM : sendSecureCommand(drone, "LAUNCH")
+COMM -> COMM : [SIMULACAO] cifra (AES) + canal primário (mTLS/5G)
+alt canal primário falha
+  COMM -> COMM : aciona FALLBACK (satélite)
+  COMM -> AUD : record(COMMUNICATION, "FALLBACK_USED")
+end
+COMM --> DS : entregue = true
+DS -> H2 : Drone.status = IN_FLIGHT
+DS -> AUD : record(FLEET, "COMMAND_LAUNCH")
+MS -> AUD : record(MISSION, "STARTED")
+MC --> B : redirect /missions
+
+== 2) Ciclo de telemetria (repete a cada 2,5s, p/ cada drone EM VOO) ==
+loop a cada 2,5s
+  TS -> H2 : findByStatus(IN_FLIGHT)
+  TS -> NAV : senseAndNavigate(drone)
+  NAV -> NAV : [SIMULACAO LIDAR/CAMERA/GPS] + rede neural
+  alt obstáculo < 15m
+    NAV -> MG : salva ThreatEvent
+    NAV -> AUD : record(NAVIGATION, "THREAT_EVASION")
+  end
+  NAV --> TS : leitura do LIDAR
+  TS -> H2 : atualiza bateria/posição do drone
+  TS -> MG : salva TelemetryRecord
+end
+
+== 3) Dashboard em tempo real (polling do navegador) ==
+loop a cada 2,5s
+  B -> MC : GET /api/dashboard
+  note right of MC : DashboardApiController agrega\nH2 (frota/missões) + MongoDB (telemetria/ameaças)
+  MC --> B : JSON (telemetria, ameaças, processos do SO)
+end
+
+@enduml

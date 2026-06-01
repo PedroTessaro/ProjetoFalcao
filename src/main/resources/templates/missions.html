@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Missões · Cyber Bullet System')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: nav}"></div>
+
+<div class="container">
+    <h1>Missões</h1>
+    <p class="subtitle">Planejamento e execução · a prioridade define o escalonamento dos processos de bordo</p>
+
+    <div class="grid cols-2">
+        <div class="card">
+            <h2>Nova missão</h2>
+            <form th:action="@{/missions}" method="post">
+                <label for="name">Nome</label>
+                <input type="text" id="name" name="name" required/>
+                <label for="objective">Objetivo</label>
+                <textarea id="objective" name="objective" rows="2"></textarea>
+                <label for="priority">Prioridade</label>
+                <select id="priority" name="priority">
+                    <option th:each="p : ${priorities}" th:value="${p}" th:text="${p}"
+                            th:selected="${p.name() == 'NORMAL'}">NORMAL</option>
+                </select>
+                <label for="droneId">Drone</label>
+                <select id="droneId" name="droneId">
+                    <option value="">— selecione —</option>
+                    <option th:each="d : ${drones}" th:value="${d.id}"
+                            th:text="${d.codename + ' (' + d.status + ')'}">FALCAO-01</option>
+                </select>
+                <button type="submit">Criar missão</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Como funciona a prioridade</h2>
+            <p style="color:var(--muted);line-height:1.6">
+                A prioridade da missão alimenta o <strong>monitor do SO embarcado</strong>: missões
+                <span class="badge CRITICAL">CRITICAL</span> elevam a fatia de CPU dos processos de
+                navegação, IA e fusão de sensores, garantindo a segurança de voo. Acompanhe no Dashboard
+                a coluna <em>Prioridade</em> dos processos.
+            </p>
+            <p style="color:var(--muted);line-height:1.6">
+                Ao iniciar a missão, o drone recebe o comando <span class="mono">LAUNCH</span> pela
+                comunicação segura e passa a transmitir telemetria em tempo real (MongoDB).
+            </p>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+        <h2>Histórico de missões (banco relacional · auditoria/análise preditiva)</h2>
+        <table>
+            <thead>
+            <tr><th>#</th><th>Nome</th><th>Drone</th><th>Prioridade</th><th>Status</th><th>Criada por</th><th>Ações</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="m : ${missions}">
+                <td th:text="${m.id}">1</td>
+                <td th:text="${m.name}">Patrulha</td>
+                <td class="mono" th:text="${m.drone != null ? m.drone.codename : '—'}">FALCAO-01</td>
+                <td><span class="badge" th:classappend="${m.priority}" th:text="${m.priority}">NORMAL</span></td>
+                <td><span class="badge" th:classappend="${m.status}" th:text="${m.status}">PLANNED</span></td>
+                <td th:text="${m.createdBy}">admin</td>
+                <td>
+                    <form class="inline-form" th:if="${m.status.name() == 'PLANNED'}"
+                          th:action="@{'/missions/' + ${m.id} + '/start'}" method="post">
+                        <button type="submit">Iniciar</button>
+                    </form>
+                    <form class="inline-form" th:if="${m.status.name() == 'IN_PROGRESS'}"
+                          th:action="@{'/missions/' + ${m.id} + '/finish'}" method="post">
+                        <input type="hidden" name="outcome" value="COMPLETED"/>
+                        <button type="submit">Concluir</button>
+                    </form>
+                    <form class="inline-form" th:if="${m.status.name() == 'IN_PROGRESS'}"
+                          th:action="@{'/missions/' + ${m.id} + '/finish'}" method="post">
+                        <input type="hidden" name="outcome" value="ABORTED"/>
+                        <button class="danger" type="submit">Abortar</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${missions.isEmpty()}"><td colspan="7" style="color:var(--muted)">Nenhuma missão ainda.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,49 @@
+@startuml component
+title Cyber Bullet System — Diagrama de Componentes / Implantação
+
+skinparam componentBackgroundColor #131a26
+skinparam componentBorderColor #2dd4bf
+skinparam componentFontColor #e6edf3
+skinparam databaseBackgroundColor #1a2332
+skinparam databaseBorderColor #fbbf24
+skinparam nodeBorderColor #243044
+skinparam ArrowColor #38bdf8
+skinparam interfaceBackgroundColor #38bdf8
+
+actor "Operador\n(navegador)" as USER
+
+node "Servidor de Aplicação (Spring Boot / JVM)" {
+
+  component "Interface Web\n(Thymeleaf + CSS + JS)" as WEB
+  component "Spring Security\n(login + MFA + filtros)" as SEC
+  component "Controllers\n(Web + API REST)" as CTRL
+  component "Serviços de Negócio\n(Drone, Mission, Audit)" as SVC
+  component "Simulações de Bordo\n(Navigation, Communication,\nEmbeddedOsMonitor, Telemetry)" as SIM
+
+  database "H2\n(relacional, em arquivo)" as H2
+  database "MongoDB\n(NoSQL, embarcado)" as MONGO
+}
+
+cloud "Frota de Drones\n(SIMULADA — hardware real ficaria aqui)" as DRONES
+
+USER --> WEB : HTTPS
+WEB --> SEC
+SEC --> CTRL
+CTRL --> SVC
+SVC --> SIM
+SVC --> H2 : JPA (operadores, frota, missões)
+SVC --> MONGO : Spring Data (auditoria)
+SIM --> MONGO : telemetria, ameaças
+SIM --> H2 : estado dos drones
+SIM ..> DRONES : [SIMULACAO]\ncomunicação (mTLS/5G + fallback)
+
+note bottom of MONGO
+  Em produção: replica set / sharding
+  → alta disponibilidade e dados distribuídos
+end note
+note bottom of DRONES
+  LIDAR, câmera, GPS, IA e RTOS de bordo
+  são simulados nos serviços (logs [SIMULACAO]).
+end note
+
+@enduml

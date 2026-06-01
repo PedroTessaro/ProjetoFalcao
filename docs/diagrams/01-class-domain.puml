@@ -1,0 +1,133 @@
+@startuml class-domain
+title Cyber Bullet System — Diagrama de Classes (Domínio + Documentos)
+
+skinparam classAttributeIconSize 0
+skinparam classBackgroundColor #131a26
+skinparam classBorderColor #2dd4bf
+skinparam classFontColor #e6edf3
+skinparam classAttributeFontColor #8b98a9
+skinparam ArrowColor #38bdf8
+skinparam packageBackgroundColor #0b0f17
+skinparam packageBorderColor #243044
+skinparam packageFontColor #e6edf3
+skinparam enumBackgroundColor #1a2332
+skinparam enumBorderColor #fbbf24
+
+package "domain — Banco RELACIONAL (H2 / JPA)" {
+
+  class Operator {
+    - Long id
+    - String username
+    - String password  <<BCrypt>>
+    - String fullName
+    - String totpSecret  <<MFA>>
+    - boolean mfaEnabled
+    - String biometricId  <<simulado>>
+  }
+
+  class Drone {
+    - Long id
+    - String codename
+    - String model
+    - double batteryPct
+    - double latitude
+    - double longitude
+    - double altitude
+    - String firmwareVersion
+    - Instant lastContact
+    - Long version  <<@Version / lock otimista>>
+  }
+
+  class Mission {
+    - Long id
+    - String name
+    - String objective
+    - String createdBy
+    - Instant createdAt
+    - Instant startedAt
+    - Instant finishedAt
+  }
+
+  enum Role {
+    ADMIN
+    OPERATOR
+    VIEWER
+  }
+  enum DroneStatus {
+    IDLE
+    IN_FLIGHT
+    RETURNING
+    LINK_LOST
+    MAINTENANCE
+  }
+  enum MissionStatus {
+    PLANNED
+    IN_PROGRESS
+    COMPLETED
+    ABORTED
+  }
+  enum MissionPriority {
+    LOW (1)
+    NORMAL (5)
+    HIGH (8)
+    CRITICAL (10)
+  }
+}
+
+package "document — Banco NÃO RELACIONAL (MongoDB)" {
+
+  class TelemetryRecord <<@Document telemetry>> {
+    - String id
+    - Long droneId
+    - String droneCodename
+    - Instant timestamp
+    - double batteryPct
+    - double latitude / longitude / altitude
+    - double speedKmh
+    - double headingDeg
+    - double lidarNearestObstacleM
+    - double signalStrength
+  }
+
+  class ThreatEvent <<@Document threat_events>> {
+    - String id
+    - Long droneId
+    - String droneCodename
+    - Instant detectedAt
+    - String type
+    - int severity
+    - String evasiveAction
+    - double distanceM
+  }
+
+  class AuditLog <<@Document audit_log — imutável>> {
+    - String id
+    - long sequence
+    - Instant timestamp
+    - String actor
+    - String category
+    - String action
+    - String details
+    - String previousHash
+    - String hash
+    - String signature  <<assinatura digital>>
+  }
+}
+
+' ---- Relações ----
+Mission "0..*" --> "0..1" Drone : drone (ManyToOne)
+Operator --> Role
+Drone --> DroneStatus
+Mission --> MissionStatus
+Mission --> MissionPriority
+
+TelemetryRecord ..> Drone : droneId (ref. lógica)
+ThreatEvent ..> Drone : droneId (ref. lógica)
+AuditLog "1" --> "0..1" AuditLog : previousHash\n(cadeia de hash)
+
+note bottom of AuditLog
+  Encadeamento estilo blockchain:
+  hash = SHA-256(conteúdo + previousHash)
+end note
+
+@enduml

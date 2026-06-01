@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Frota · Cyber Bullet System')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: nav}"></div>
+
+<div class="container">
+    <h1>Gerenciamento da Frota</h1>
+    <p class="subtitle">Controle remoto dos drones · comandos passam pela comunicação segura com fallback</p>
+
+    <div class="grid cols-4" style="margin-bottom:16px">
+        <div class="card stat"><div class="value accent" th:text="${stats.total}">0</div><div class="label">Total</div></div>
+        <div class="card stat"><div class="value ok" th:text="${stats.inFlight}">0</div><div class="label">Em voo</div></div>
+        <div class="card stat"><div class="value" th:text="${stats.idle}">0</div><div class="label">Em base</div></div>
+        <div class="card stat"><div class="value danger" th:text="${stats.linkLost}">0</div><div class="label">Sem conexão</div></div>
+    </div>
+
+    <div class="card">
+        <table>
+            <thead>
+            <tr><th>Codename</th><th>Modelo</th><th>Firmware</th><th>Status</th><th>Bateria</th><th>Última conexão</th><th>Controle remoto</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="d : ${drones}">
+                <td class="mono" th:text="${d.codename}">FALCAO-01</td>
+                <td th:text="${d.model}">Raptor X</td>
+                <td class="mono" th:text="${d.firmwareVersion}">v2.4.1</td>
+                <td><span class="badge" th:classappend="${d.status}" th:text="${d.status}">IDLE</span></td>
+                <td th:text="${#numbers.formatDecimal(d.batteryPct,1,0)} + '%'">80%</td>
+                <td class="mono" th:text="${d.lastContact != null ? #temporals.format(d.lastContact, 'HH:mm:ss') : '—'}">--</td>
+                <td>
+                    <form class="inline-form" th:action="@{'/fleet/' + ${d.id} + '/command'}" method="post">
+                        <input type="hidden" name="command" value="LAUNCH"/>
+                        <button type="submit">Decolar</button>
+                    </form>
+                    <form class="inline-form" th:action="@{'/fleet/' + ${d.id} + '/command'}" method="post">
+                        <input type="hidden" name="command" value="RECALL"/>
+                        <button class="ghost" type="submit">Recolher</button>
+                    </form>
+                    <form class="inline-form" th:action="@{'/fleet/' + ${d.id} + '/command'}" method="post">
+                        <input type="hidden" name="command" value="LAND"/>
+                        <button class="ghost" type="submit">Pousar</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <p class="note" style="color:var(--muted);font-size:12px;margin-top:14px">
+        Os comandos são cifrados (AES-256-GCM, simulado) e enviados via canal primário (mTLS/5G); em falha,
+        o sistema aciona o canal de fallback (satélite). Veja os logs <span class="mono">[COMM]</span> no console.
+    </p>
+</div>
+</body>
+</html>

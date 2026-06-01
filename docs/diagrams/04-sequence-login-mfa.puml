@@ -1,0 +1,62 @@
+@startuml sequence-login-mfa
+title Cyber Bullet System — Sequência: Login + MFA (autenticação multifator)
+
+skinparam sequenceArrowColor #38bdf8
+skinparam sequenceLifeLineBorderColor #2dd4bf
+skinparam sequenceParticipantBackgroundColor #131a26
+skinparam sequenceParticipantFontColor #e6edf3
+skinparam noteBackgroundColor #1a2332
+skinparam noteFontColor #e6edf3
+
+actor Operador as U
+participant "Navegador" as B
+participant "Spring Security\n(filter chain)" as SS
+participant "OperatorUserDetailsService" as UDS
+participant "MfaSuccessHandler" as MSH
+participant "AuthController" as AC
+participant "TotpService" as TOTP
+participant "AuditService" as AUD
+database "H2\n(operators)" as DB
+
+== Fator 1: senha ==
+U -> B : abre /login e envia usuário+senha
+B -> SS : POST /login
+SS -> UDS : loadUserByUsername(username)
+UDS -> DB : findByUsername()
+DB --> UDS : Operator
+UDS --> SS : UserDetails (hash BCrypt)
+SS -> SS : valida senha (BCrypt)
+
+== Fator 3: biometria (simulada) ==
+SS -> MSH : onAuthenticationSuccess()
+MSH -> MSH : [SIMULACAO BIOMETRIA] digital APROVADA
+MSH -> DB : busca Operator (mfaEnabled?)
+MSH -> AUD : record(AUTH, "PASSWORD_OK")
+MSH -> B : redirect /mfa\n(sessão: MFA_PASSED=false)
+
+== Fator 2: TOTP ==
+B -> AC : GET /mfa
+AC -> TOTP : qrCodeDataUri() + currentCodeForDemo()
+AC --> B : tela MFA (QR Code + campo do código)
+U -> B : digita código de 6 dígitos
+B -> AC : POST /mfa/verify (code)
+AC -> TOTP : isValid(secret, code)
+alt código válido
+  TOTP --> AC : true
+  AC -> AUD : record(AUTH, "MFA_OK")
+  AC -> B : redirect /dashboard\n(sessão: MFA_PASSED=true)
+  B -> SS : GET /dashboard (MfaFilter libera)
+  SS --> B : Dashboard
+else código inválido
+  TOTP --> AC : false
+  AC -> AUD : record(AUTH, "MFA_FAIL")
+  AC --> B : tela MFA com erro
+end
+
+note over SS, MSH
+  Enquanto MFA_PASSED=false, o MfaFilter
+  redireciona qualquer página protegida
+  de volta para /mfa.
+end note
+
+@enduml

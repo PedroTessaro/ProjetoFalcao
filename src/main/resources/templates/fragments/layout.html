@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${title}">Cyber Bullet System</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+<div th:fragment="nav" class="topbar">
+    <div class="brand">CYBER<span class="dot">·</span>BULLET
+        <small>Securus Dynamics · Central de Controle</small>
+    </div>
+    <nav class="nav">
+        <a th:href="@{/dashboard}" th:classappend="${active == 'dashboard'} ? 'active'">Dashboard</a>
+        <a th:href="@{/fleet}" th:classappend="${active == 'fleet'} ? 'active'">Frota</a>
+        <a th:href="@{/missions}" th:classappend="${active == 'missions'} ? 'active'">Missões</a>
+        <a th:href="@{/audit}" th:classappend="${active == 'audit'} ? 'active'">Auditoria</a>
+    </nav>
+    <div class="userbox">
+        <span><span class="live-dot"></span> <span sec:authentication="name">user</span></span>
+        <form th:action="@{/logout}" method="post">
+            <button class="ghost" type="submit">Sair</button>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

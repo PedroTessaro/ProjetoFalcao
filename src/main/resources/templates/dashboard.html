@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Dashboard · Cyber Bullet System')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: nav}"></div>
+
+<div class="container">
+    <h1>Dashboard em Tempo Real</h1>
+    <p class="subtitle"><span class="live-dot"></span> Telemetria atualizada automaticamente · dados de voo do MongoDB</p>
+
+    <div class="grid cols-4" style="margin-bottom:16px">
+        <div class="card stat"><div class="value accent" id="kpi-total">0</div><div class="label">Drones na frota</div></div>
+        <div class="card stat"><div class="value ok" id="kpi-flight">0</div><div class="label">Em voo</div></div>
+        <div class="card stat"><div class="value warn" id="kpi-missions">0</div><div class="label">Missões ativas</div></div>
+        <div class="card stat"><div class="value danger" id="kpi-priority">0</div><div class="label">Prioridade SO embarcado</div></div>
+    </div>
+
+    <div class="grid cols-2">
+        <div class="card">
+            <h2>Telemetria dos drones</h2>
+            <table>
+                <thead>
+                <tr><th>Drone</th><th>Status</th><th>Bateria</th><th>Alt (m)</th><th>Vel (km/h)</th><th>LIDAR (m)</th><th>Sinal</th></tr>
+                </thead>
+                <tbody id="telemetry-body">
+                <tr><td colspan="7" style="color:var(--muted)">Carregando telemetria…</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>Processos do SO embarcado (escalonamento por prioridade)</h2>
+            <table>
+                <thead>
+                <tr><th>Processo</th><th>Prioridade</th><th>CPU %</th><th>Mem (MB)</th><th>Estado</th></tr>
+                </thead>
+                <tbody id="process-body">
+                <tr><td colspan="5" style="color:var(--muted)">Carregando…</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+        <h2>Ameaças detectadas (navegação inteligente · evasão autônoma)</h2>
+        <table>
+            <thead>
+            <tr><th>Quando</th><th>Drone</th><th>Tipo</th><th>Severidade</th><th>Distância</th><th>Manobra de evasão</th></tr>
+            </thead>
+            <tbody id="threat-body">
+            <tr><td colspan="6" style="color:var(--muted)">Sem ameaças registradas.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

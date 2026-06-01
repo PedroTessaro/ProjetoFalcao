@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('MFA · Cyber Bullet System')}"></head>
+<body>
+<div class="auth-wrap">
+    <div class="auth-card">
+        <h1>Verificação MFA</h1>
+        <p class="sub">Fator 2 · Código TOTP para <strong th:text="${username}">user</strong></p>
+
+        <div class="alert err" th:if="${error}">Código inválido. Tente novamente.</div>
+
+        <div class="qr">
+            <img th:src="${qr}" alt="QR Code TOTP"/>
+            <p class="note">Escaneie no Google Authenticator / Authy (apenas no 1º acesso).</p>
+        </div>
+
+        <div class="alert info" th:if="${demoCode}">
+            Modo demonstração — código válido agora:
+            <div class="demo-code" th:text="${demoCode}">000000</div>
+        </div>
+
+        <form th:action="@{/mfa/verify}" method="post">
+            <label for="code">Código de 6 dígitos</label>
+            <input type="text" id="code" name="code" inputmode="numeric" maxlength="6"
+                   autocomplete="one-time-code" autofocus required/>
+            <button type="submit">Verificar e entrar</button>
+        </form>
+
+        <p class="note">
+            <a th:href="@{/logout}">Cancelar e voltar ao login</a>
+        </p>
+    </div>
+</div>
+</body>
+</html>

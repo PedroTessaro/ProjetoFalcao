@@ -1,0 +1,63 @@
+@startuml er-relacional
+title Cyber Bullet System — Diagrama Relacional (Banco H2)
+
+skinparam linetype ortho
+skinparam classBackgroundColor #131a26
+skinparam classBorderColor #2dd4bf
+skinparam classFontColor #e6edf3
+skinparam classAttributeFontColor #8b98a9
+skinparam ArrowColor #fbbf24
+
+' Usa notação de entidade (tabela). PK = chave primária, FK = chave estrangeira.
+
+entity "operators" as operators {
+  * id : BIGINT <<PK>>
+  --
+  * username : VARCHAR <<unique>>
+  * password : VARCHAR  (hash BCrypt)
+  * full_name : VARCHAR
+  * role : VARCHAR  (ADMIN/OPERATOR/VIEWER)
+  totp_secret : VARCHAR(64)
+  mfa_enabled : BOOLEAN
+  biometric_id : VARCHAR
+}
+
+entity "drones" as drones {
+  * id : BIGINT <<PK>>
+  --
+  * codename : VARCHAR <<unique>>
+  model : VARCHAR
+  * status : VARCHAR  (IDLE/IN_FLIGHT/...)
+  battery_pct : DOUBLE
+  latitude : DOUBLE
+  longitude : DOUBLE
+  altitude : DOUBLE
+  firmware_version : VARCHAR
+  last_contact : TIMESTAMP
+  version : BIGINT  (lock otimista)
+}
+
+entity "missions" as missions {
+  * id : BIGINT <<PK>>
+  --
+  * name : VARCHAR
+  objective : VARCHAR(1000)
+  * priority : VARCHAR  (LOW/NORMAL/HIGH/CRITICAL)
+  * status : VARCHAR  (PLANNED/IN_PROGRESS/...)
+  drone_id : BIGINT <<FK>>
+  created_by : VARCHAR
+  created_at : TIMESTAMP
+  started_at : TIMESTAMP
+  finished_at : TIMESTAMP
+}
+
+' Relação: uma missão referencia no máximo um drone (ManyToOne).
+drones ||--o{ missions : "1 drone executa\nN missões (drone_id)"
+
+note right of operators
+  created_by em "missions" guarda o
+  username do operador (referência lógica,
+  sem FK explícita no código).
+end note
+
+@enduml

@@ -1,0 +1,97 @@
+@startuml class-architecture
+title Cyber Bullet System — Diagrama de Classes (Arquitetura em Camadas)
+
+skinparam classAttributeIconSize 0
+skinparam classBackgroundColor #131a26
+skinparam classBorderColor #2dd4bf
+skinparam classFontColor #e6edf3
+skinparam classAttributeFontColor #8b98a9
+skinparam ArrowColor #38bdf8
+skinparam packageBackgroundColor #0b0f17
+skinparam packageBorderColor #243044
+skinparam packageFontColor #e6edf3
+
+package "security" {
+  class SecurityConfig
+  class OperatorUserDetailsService
+  class MfaSuccessHandler
+  class MfaFilter
+}
+
+package "controller (Web Thymeleaf + REST)" {
+  class AuthController
+  class DashboardController
+  class FleetController
+  class MissionController
+  class AuditController
+  class DashboardApiController <<@RestController>>
+}
+
+package "service (regras + SIMULAÇÕES)" {
+  class DroneService
+  class MissionService
+  class NavigationService <<simula LIDAR/IA>>
+  class CommunicationService <<simula rádio + fallback>>
+  class EmbeddedOsMonitorService <<simula SO embarcado>>
+  class TelemetrySimulator <<simula drones>>
+  class AuditService
+  class CryptoService
+  class TotpService <<MFA/TOTP>>
+}
+
+package "repository" {
+  interface OperatorRepository <<JPA>>
+  interface DroneRepository <<JPA>>
+  interface MissionRepository <<JPA>>
+  interface TelemetryRepository <<Mongo>>
+  interface ThreatEventRepository <<Mongo>>
+  interface AuditLogRepository <<Mongo>>
+}
+
+' ---- Controllers -> Services ----
+AuthController --> TotpService
+AuthController --> AuditService
+AuthController --> OperatorRepository
+DashboardController --> DroneService
+DashboardController --> MissionService
+FleetController --> DroneService
+MissionController --> MissionService
+MissionController --> DroneService
+AuditController --> AuditService
+DashboardApiController --> DroneService
+DashboardApiController --> MissionService
+DashboardApiController --> EmbeddedOsMonitorService
+DashboardApiController --> TelemetryRepository
+DashboardApiController --> ThreatEventRepository
+
+' ---- Services -> Services / Repos ----
+DroneService --> DroneRepository
+DroneService --> CommunicationService
+DroneService --> AuditService
+MissionService --> MissionRepository
+MissionService --> DroneRepository
+MissionService --> DroneService
+MissionService --> AuditService
+NavigationService --> ThreatEventRepository
+NavigationService --> AuditService
+CommunicationService --> AuditService
+EmbeddedOsMonitorService --> MissionRepository
+TelemetrySimulator --> DroneRepository
+TelemetrySimulator --> TelemetryRepository
+TelemetrySimulator --> NavigationService
+AuditService --> AuditLogRepository
+AuditService --> CryptoService
+
+' ---- Security ----
+SecurityConfig --> MfaSuccessHandler
+SecurityConfig --> MfaFilter
+OperatorUserDetailsService --> OperatorRepository
+MfaSuccessHandler --> OperatorRepository
+MfaSuccessHandler --> AuditService
+
+note bottom of TelemetrySimulator
+  @Scheduled: a cada 2,5s gera telemetria
+  dos drones EM VOO (faz o papel do drone real)
+end note
+
+@enduml

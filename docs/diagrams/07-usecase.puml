@@ -1,0 +1,65 @@
+@startuml usecase
+title Cyber Bullet System — Diagrama de Casos de Uso
+
+left to right direction
+skinparam actorBorderColor #2dd4bf
+skinparam actorFontColor #e6edf3
+skinparam usecaseBackgroundColor #131a26
+skinparam usecaseBorderColor #38bdf8
+skinparam usecaseFontColor #e6edf3
+skinparam packageBorderColor #243044
+
+actor "Administrador" as ADM
+actor "Operador" as OP
+actor "Viewer\n(somente leitura)" as VW
+actor "Sistema embarcado\n(drone simulado)" as SYS
+
+rectangle "Central de Controle" {
+  usecase "Autenticar (senha + MFA + biometria)" as UC_AUTH
+  usecase "Visualizar dashboard\nem tempo real" as UC_DASH
+  usecase "Gerenciar frota" as UC_FLEET
+  usecase "Enviar comando remoto\n(decolar/recolher/pousar)" as UC_CMD
+  usecase "Planejar/criar missão" as UC_MNEW
+  usecase "Iniciar/finalizar missão" as UC_MRUN
+  usecase "Consultar auditoria\ne verificar integridade" as UC_AUD
+  usecase "Gerar telemetria" as UC_TELE
+  usecase "Detectar ameaça\ne evadir" as UC_THREAT
+  usecase "Acionar fallback\nde comunicação" as UC_FB
+  usecase "Gerenciar operadores" as UC_USERS
+}
+
+' Todos autenticam
+ADM --> UC_AUTH
+OP  --> UC_AUTH
+VW  --> UC_AUTH
+
+' Viewer: só leitura
+VW --> UC_DASH
+VW --> UC_AUD
+
+' Operador: opera frota e missões
+OP --> UC_DASH
+OP --> UC_FLEET
+OP --> UC_MNEW
+OP --> UC_MRUN
+OP --> UC_AUD
+
+' Admin: tudo + operadores
+ADM --> UC_FLEET
+ADM --> UC_MNEW
+ADM --> UC_MRUN
+ADM --> UC_USERS
+ADM --> UC_DASH
+ADM --> UC_AUD
+
+' Relações entre casos de uso
+UC_FLEET ..> UC_CMD : <<include>>
+UC_CMD ..> UC_FB : <<extend>>
+UC_MRUN ..> UC_CMD : <<include>>
+
+' Ator sistema (simulado) dispara casos automáticos
+SYS --> UC_TELE
+SYS --> UC_THREAT
+UC_TELE ..> UC_THREAT : <<extend>>
+
+@enduml

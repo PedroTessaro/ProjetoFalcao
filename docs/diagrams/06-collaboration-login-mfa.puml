@@ -1,0 +1,48 @@
+@startuml collaboration-login-mfa
+title Cyber Bullet System — Diagrama de Comunicação/Colaboração: Login + MFA
+caption Objetos ligados por mensagens NUMERADAS (ordem temporal) — equivale ao diagrama de sequência 04
+
+skinparam objectBackgroundColor #131a26
+skinparam objectBorderColor #2dd4bf
+skinparam objectFontColor #e6edf3
+skinparam ArrowColor #38bdf8
+skinparam ArrowFontColor #fbbf24
+
+' No diagrama de colaboração, o que importa são os OBJETOS, seus LINKS e a
+' NUMERAÇÃO das mensagens (que indica a sequência), e não a linha do tempo.
+
+object "operador : Operador" as U
+object "b : Navegador" as B
+object "ss : SpringSecurity" as SS
+object "uds : OperatorUserDetailsService" as UDS
+object "msh : MfaSuccessHandler" as MSH
+object "ac : AuthController" as AC
+object "totp : TotpService" as TOTP
+object "aud : AuditService" as AUD
+object "db : H2 (operators)" as DB
+
+U  --> B   : 1: informa usuário+senha
+B  --> SS  : 2: POST /login
+SS --> UDS : 3: loadUserByUsername()
+UDS --> DB : 4: findByUsername()
+SS --> SS  : 5: valida senha (BCrypt)
+SS --> MSH : 6: onAuthenticationSuccess()
+MSH --> MSH: 7: [SIMULACAO] biometria APROVADA
+MSH --> AUD: 8: record("PASSWORD_OK")
+MSH --> B  : 9: redirect /mfa (MFA_PASSED=false)
+B  --> AC  : 10: GET /mfa
+AC --> TOTP: 11: qrCodeDataUri() + códigoDemo()
+U  --> B   : 12: digita código TOTP
+B  --> AC  : 13: POST /mfa/verify(code)
+AC --> TOTP: 14: isValid(secret, code)
+AC --> AUD : 15: record("MFA_OK")
+AC --> B   : 16: redirect /dashboard (MFA_PASSED=true)
+
+note bottom
+  Diferença para o diagrama de sequência:
+  aqui a ÊNFASE é na estrutura (quais objetos
+  colaboram e como estão ligados); a ordem
+  vem dos NÚMEROS das mensagens.
+end note
+
+@enduml

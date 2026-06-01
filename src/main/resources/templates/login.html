@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Login · Cyber Bullet System')}"></head>
+<body>
+<div class="auth-wrap">
+    <div class="auth-card">
+        <h1>CYBER<span style="color:#2dd4bf">·</span>BULLET</h1>
+        <p class="sub">Central de Controle · Securus Dynamics</p>
+
+        <div class="alert err" th:if="${param.error}">Usuário ou senha inválidos.</div>
+        <div class="alert info" th:if="${param.logout}">Sessão encerrada com segurança.</div>
+
+        <form th:action="@{/login}" method="post">
+            <label for="username">Operador</label>
+            <input type="text" id="username" name="username" autofocus required/>
+            <label for="password">Senha</label>
+            <input type="password" id="password" name="password" required/>
+            <button type="submit">Autenticar (Fator 1)</button>
+        </form>
+
+        <p class="note">
+            Autenticação multifator habilitada. Após a senha você precisará do
+            código TOTP (Fator 2). A biometria (Fator 3) é simulada no servidor.<br/><br/>
+            <strong>Demo:</strong> admin / admin123 · operador / operador123 · viewer / viewer123
+        </p>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,135 @@
+:root {
+    --bg: #0b0f17;
+    --panel: #131a26;
+    --panel-2: #1a2332;
+    --border: #243044;
+    --text: #e6edf3;
+    --muted: #8b98a9;
+    --accent: #2dd4bf;
+    --accent-2: #38bdf8;
+    --danger: #f87171;
+    --warn: #fbbf24;
+    --ok: #4ade80;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", Roboto, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+}
+
+a { color: var(--accent-2); text-decoration: none; }
+
+/* ---------- Top bar / nav ---------- */
+.topbar {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    background: linear-gradient(90deg, #0d1422, #131a26);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 58px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+.brand { font-weight: 700; letter-spacing: .5px; }
+.brand .dot { color: var(--accent); }
+.brand small { display: block; font-weight: 400; color: var(--muted); font-size: 11px; }
+.nav { display: flex; gap: 4px; flex: 1; }
+.nav a {
+    color: var(--muted);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-weight: 500;
+}
+.nav a:hover { background: var(--panel-2); color: var(--text); }
+.nav a.active { background: var(--accent); color: #04201c; }
+.userbox { display: flex; align-items: center; gap: 12px; color: var(--muted); }
+.userbox form { margin: 0; }
+
+.container { padding: 24px; max-width: 1280px; margin: 0 auto; }
+h1 { font-size: 20px; margin: 0 0 4px; }
+.subtitle { color: var(--muted); margin: 0 0 20px; }
+
+/* ---------- Cards / grid ---------- */
+.grid { display: grid; gap: 16px; }
+.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.cols-2 { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 900px) { .cols-4, .cols-2 { grid-template-columns: 1fr 1fr; } }
+
+.card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+}
+.card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin: 0 0 12px; }
+
+.stat .value { font-size: 30px; font-weight: 700; }
+.stat .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+.stat .value.ok { color: var(--ok); }
+.stat .value.warn { color: var(--warn); }
+.stat .value.danger { color: var(--danger); }
+.stat .value.accent { color: var(--accent); }
+
+/* ---------- Table ---------- */
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--border); }
+th { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
+tbody tr:hover { background: var(--panel-2); }
+td.mono, .mono { font-family: "JetBrains Mono", "Courier New", monospace; font-size: 12px; }
+
+/* ---------- Badges ---------- */
+.badge { padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
+.badge.IN_FLIGHT, .badge.IN_PROGRESS { background: rgba(56,189,248,.15); color: var(--accent-2); }
+.badge.IDLE, .badge.PLANNED { background: rgba(139,152,169,.15); color: var(--muted); }
+.badge.RETURNING { background: rgba(251,191,36,.15); color: var(--warn); }
+.badge.LINK_LOST, .badge.ABORTED { background: rgba(248,113,113,.15); color: var(--danger); }
+.badge.MAINTENANCE { background: rgba(168,85,247,.15); color: #c084fc; }
+.badge.COMPLETED { background: rgba(74,222,128,.15); color: var(--ok); }
+.badge.LOW { background: rgba(139,152,169,.15); color: var(--muted); }
+.badge.NORMAL { background: rgba(56,189,248,.15); color: var(--accent-2); }
+.badge.HIGH { background: rgba(251,191,36,.15); color: var(--warn); }
+.badge.CRITICAL { background: rgba(248,113,113,.2); color: var(--danger); }
+
+/* ---------- Buttons / forms ---------- */
+button, .btn {
+    background: var(--accent); color: #04201c; border: none; padding: 7px 13px;
+    border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px;
+}
+button:hover, .btn:hover { filter: brightness(1.08); }
+button.ghost { background: var(--panel-2); color: var(--text); border: 1px solid var(--border); }
+button.danger { background: var(--danger); color: #2a0707; }
+input, select, textarea {
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+    padding: 8px 10px; border-radius: 6px; font-size: 13px; width: 100%;
+}
+label { display: block; font-size: 12px; color: var(--muted); margin: 10px 0 4px; }
+.inline-form { display: inline; }
+
+/* ---------- Battery bar ---------- */
+.bar { background: var(--panel-2); border-radius: 6px; height: 8px; overflow: hidden; width: 90px; }
+.bar > span { display: block; height: 100%; background: var(--ok); }
+.bar > span.warn { background: var(--warn); }
+.bar > span.danger { background: var(--danger); }
+
+/* ---------- Login / MFA ---------- */
+.auth-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+.auth-card { width: 380px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 32px; }
+.auth-card h1 { font-size: 22px; }
+.auth-card .sub { color: var(--muted); margin-bottom: 20px; font-size: 13px; }
+.auth-card button { width: 100%; margin-top: 18px; padding: 10px; }
+.alert { padding: 10px 12px; border-radius: 6px; font-size: 13px; margin-bottom: 14px; }
+.alert.err { background: rgba(248,113,113,.15); color: var(--danger); border: 1px solid rgba(248,113,113,.3); }
+.alert.info { background: rgba(56,189,248,.12); color: var(--accent-2); border: 1px solid rgba(56,189,248,.25); }
+.qr { text-align: center; margin: 16px 0; }
+.qr img { width: 170px; border-radius: 8px; background: #fff; padding: 6px; }
+.note { font-size: 11px; color: var(--muted); margin-top: 16px; line-height: 1.5; }
+.demo-code { font-family: monospace; font-size: 22px; letter-spacing: 4px; color: var(--accent); text-align: center; }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); display: inline-block; animation: pulse 1.4s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }

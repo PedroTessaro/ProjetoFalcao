@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Auditoria · Cyber Bullet System')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: nav}"></div>
+
+<div class="container">
+    <h1>Trilha de Auditoria Imutável</h1>
+    <p class="subtitle">Logs encadeados por hash (estilo blockchain) no MongoDB · assinados digitalmente</p>
+
+    <div class="card" style="margin-bottom:16px"
+         th:style="${verification.valid()} ? 'border-color:var(--ok)' : 'border-color:var(--danger)'">
+        <div th:if="${verification.valid()}">
+            <span class="value ok" style="font-size:18px">✔ Cadeia íntegra</span>
+            <span style="color:var(--muted)" th:text="' — ' + ${verification.totalRecords()} + ' registros verificados (hash + assinatura).'"></span>
+        </div>
+        <div th:unless="${verification.valid()}">
+            <span class="value danger" style="font-size:18px">✘ Cadeia adulterada</span>
+            <span style="color:var(--muted)" th:text="' — quebra detectada no registro #' + ${verification.firstBrokenSequence()}"></span>
+        </div>
+    </div>
+
+    <div class="card">
+        <table>
+            <thead>
+            <tr><th>#</th><th>Quando</th><th>Categoria</th><th>Ação</th><th>Ator</th><th>Detalhes</th><th>Hash</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="l : ${logs}">
+                <td th:text="${l.sequence}">0</td>
+                <td class="mono" th:text="${#temporals.format(l.timestamp, 'dd/MM HH:mm:ss')}">--</td>
+                <td><span class="badge NORMAL" th:text="${l.category}">AUTH</span></td>
+                <td class="mono" th:text="${l.action}">LOGIN</td>
+                <td th:text="${l.actor}">admin</td>
+                <td style="max-width:340px" th:text="${l.details}">...</td>
+                <td class="mono" th:title="${l.hash}" th:text="${#strings.abbreviate(l.hash, 14)}">abc…</td>
+            </tr>
+            <tr th:if="${logs.isEmpty()}"><td colspan="7" style="color:var(--muted)">Nenhum registro.</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <p class="note" style="color:var(--muted);font-size:12px;margin-top:14px">
+        Cada registro inclui o hash do anterior; alterar qualquer linha antiga invalida toda a cadeia a partir
+        dela, e isso é detectado pela verificação acima. A alta disponibilidade viria da replicação do MongoDB
+        (replica set / sharding).
+    </p>
+</div>
+</body>
+</html>
